@@ -229,7 +229,8 @@ Route::group(['middleware' => ['auth']], function () {
     });
 });
 
-Route::group(['middleware' => ['auth']], function () {
-    Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
-    Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');
+Route::group(['middleware' => ['auth', 'admin']], function () {
+    Route::get('/data/delete', 'DataController@deleteAll')->name('data.delete');
 });
+Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
+Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');
