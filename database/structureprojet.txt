@@ -1,0 +1,64 @@
+1. Structure du Projet Laravel :
+   Les dossiers principaux se trouvent dans :
+- app/ : Contient les Models, Controllers et Services
+  
+  - app/Http/Controllers/ : Les contrôleurs qui gèrent la logique
+  - app/Models/ : Les modèles qui interagissent avec la base de données
+  - app/Services/ : Les services qui contiennent la logique métier
+- database/ : Tout ce qui concerne la base de données
+  
+  - database/migrations/ : Les fichiers de structure de la base de données
+  - database/seeds/ : Les données de test
+- resources/ : Les vues et assets
+  
+  - resources/views/ : Les fichiers de template (Blade)
+  - resources/js/ : Les fichiers JavaScript
+  - resources/sass/ : Les fichiers CSS/SASS
+- routes/ : Définition des routes
+  
+  - routes/web.php : Routes pour l'interface web
+  - routes/api.php : Routes pour l'API
+2. Concepts Clés de Laravel :
+- MVC (Model-View-Controller) :
+  
+  - Models : Gèrent les données et la logique métier
+  - Views : Affichent les données (templates Blade)
+  - Controllers : Gèrent les requêtes et la logique
+- Artisan : L'outil en ligne de commande de Laravel
+```bash
+php artisan list
+ ```
+
+- Migration : Pour créer/modifier la base de données
+```bash
+php artisan migrate
+ ```
+
+3. Configuration du Projet :
+- Le fichier .env contient la configuration (base de données, mail, etc.)
+- config/ contient les fichiers de configuration détaillés
+4. Fonctionnalités du DaybydayCRM :
+- Gestion des clients
+- Gestion des tâches
+- Facturation
+- Gestion des documents
+- Système de rôles et permissions
+5. Pour Démarrer :
+```bash
+composer install
+copy .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+npm install
+npm run dev
+php artisan serve
+ ```
+
+6. Base de données :
+- Vérifiez le fichier .env pour la configuration
+- Les migrations dans database/migrations/ définissent la structure
+- Les modèles dans app/Models/ définissent les relations
+7. Documentation Utile :
+- Documentation Laravel
+- Documentation du projet
