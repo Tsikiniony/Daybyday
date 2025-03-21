@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Add this line
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +14,7 @@ class DataController extends Controller
 {
     public function __construct()
     {
+        // Vérifier que l'utilisateur est admin pour toutes les méthodes
         $this->middleware(function ($request, $next) {
             if (!auth()->user()->hasRole(['administrator', 'owner'])) {
                 return redirect()->back()->with('flash_message_warning', 'Access denied. Administrator rights required.');
@@ -21,137 +22,94 @@ class DataController extends Controller
             return $next($request);
         });
     }
-
-    // Add the new functions here
-    public function showImport()
+    public function deleteAll()
     {
-        $importableTables = [
-            'clients' => 'Clients',
-            'projects' => 'Projects',
-            'tasks' => 'Tasks',
-            'leads' => 'Leads',
-            'users' => 'Users',
-            'departments' => 'Departments',
-            'industries' => 'Industries',
-            'products' => 'Products',
-            'invoices' => 'Invoices',
-            'appointments' => 'Appointments'
-        ];
-        
-        return view('init_data.import', compact('importableTables'));
-    }
-
-    public function showExport()
-    {
-        $exportableTables = [
-            'clients' => 'Clients',
-            'projects' => 'Projects',
-            'tasks' => 'Tasks',
-            'leads' => 'Leads',
-            'users' => 'Users',
-            'departments' => 'Departments',
-            'industries' => 'Industries',
-            'products' => 'Products',
-            'invoices' => 'Invoices',
-            'appointments' => 'Appointments'
-        ];
-        
-        return view('init_data.export', compact('exportableTables'));
-    }
-
-    public function showReset()
-    {
-        $resettableTables = [
-            'clients' => 'Clients',
-            'projects' => 'Projects',
-            'tasks' => 'Tasks',
-            'leads' => 'Leads',
-            'users' => 'Users (except current user)',
-            'departments' => 'Departments',
-            'products' => 'Products',
-            'invoices' => 'Invoices',
-            'appointments' => 'Appointments',
-            'comments' => 'Comments',
-            'invoice_lines' => 'Invoice Lines',
-            'offers' => 'Offers'
-        ];
-        
-        return view('init_data.reset', compact('resettableTables'));
-    }
-
-    public function import(Request $request)
-    {
-        $request->validate([
-            'import_type' => 'required|string',
-            'file' => 'required|file',
-            'has_headers' => 'nullable'
-        ]);
-
         try {
-            if (!Schema::hasTable($request->import_type)) {
-                return redirect()->back()->with('flash_message_warning', 'Table not found: ' . $request->import_type);
-            }
-            
-            $file = $request->file('file');
-            $extension = strtolower($file->getClientOriginalExtension());
-            
-            if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
-                return redirect()->back()->with('flash_message_warning', 
-                    'Invalid file format: .' . $extension . '. Please upload a CSV or Excel file (.csv, .xlsx, .xls).');
-            }
-            
-            $hasHeaders = $request->has('has_headers');
-            
-            if ($extension === 'csv') {
-                // Pass the correct number of arguments
-                $importCount = $this->importCsv($file, $request->import_type, $hasHeaders);
-                return redirect()->back()->with('flash_message', "Successfully imported {$importCount} records into {$request->import_type}!");
-            } else {
-                return redirect()->back()->with('flash_message_warning', 'Excel import is not implemented yet. Please use CSV format.');
-            }
+            // Réinitialiser complètement la base de données et exécuter tous les seeders
+            Artisan::call('migrate:fresh --seed');
+            return redirect()->back()->with('flash_message', 'All data has been reset successfully');
         } catch (\Exception $e) {
-            return redirect()->back()->with('flash_message_warning', 'Error importing data: ' . $e->getMessage());
+            return redirect()->back()->with('flash_message_warning', 'Error resetting data: ' . $e->getMessage());
         }
     }
 
-    protected function importCsv($file, $table, $hasHeaders = true)
+    public function generateTestData()
     {
-        $handle = fopen($file->getPathname(), 'r');
-        $importCount = 0;
-        $headers = [];
-        $lineNumber = 0;
-        
-        $tableColumns = Schema::getColumnListing($table);
-        \Log::info('Colonnes de la table ' . $table . ': ' . json_encode($tableColumns));
-        
-        $firstLine = fgets($handle);
-        rewind($handle);
-        
-        $delimiter = ',';
-        if (strpos($firstLine, ';') !== false) {
-            $delimiter = ';';
-        } elseif (strpos($firstLine, "\t") !== false) {
-            $delimiter = "\t";
+        try {
+            // Générer les données de démonstration
+            Artisan::call('db:seed --class=DummyDatabaseSeeder');
+            
+            return redirect()->back()->with('flash_message', 'Demo data generated successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('flash_message_warning', 'Error generating demo data: ' . $e->getMessage());
         }
-        
-        while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
-            $lineNumber++;
-            
-            if (count($data) <= 1 && empty($data[0])) {
-                continue;
+    }
+
+    public function importCSV(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'csv_file' => 'required|file|mimes:csv,xls,xlsx|max:10240',
+                'table_name' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->with('flash_message_warning', $validator->errors()->first());
             }
-            
-            if ($lineNumber === 1 && $hasHeaders) {
-                $headers = array_map('trim', $data);
-                continue;
+
+            // Vérifier si la table existe
+            $tableName = $request->input('table_name');
+            if (!Schema::hasTable($tableName)) {
+                return redirect()->back()->with('flash_message_warning', "Table '$tableName' does not exist");
             }
+
+            $file = $request->file('csv_file');
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
             
-            $data = array_combine($headers, $data);
-            DB::table($table)->insert($data);
-            $importCount++;
+            // Vérifier les en-têtes
+            $headers = array_shift($rows);
+            $tableColumns = Schema::getColumnListing($tableName);
+            $invalidColumns = array_diff($headers, $tableColumns);
+            
+            if (!empty($invalidColumns)) {
+                return redirect()->back()->with('flash_message_warning', 
+                    'Invalid columns found: ' . implode(', ', $invalidColumns));
+            }
+
+            DB::beginTransaction();
+            
+            foreach ($rows as $rowIndex => $row) {
+                try {
+                    $rowNumber = $rowIndex + 2; // +2 car première ligne = en-têtes et index commence à 0
+                    $data = array_combine($headers, $row);
+                    
+                    // Ajouter external_id si nécessaire
+                    if (in_array('external_id', $tableColumns)) {
+                        $data['external_id'] = Uuid::uuid4();
+                    }
+                    
+                    // Hasher le mot de passe si c'est un utilisateur
+                    if ($tableName === 'users' && isset($data['password'])) {
+                        $data['password'] = bcrypt($data['password']);
+                    }
+
+                    DB::table($tableName)->insert($data);
+                    
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return redirect()->back()->with('flash_message_warning', 
+                        "Error at row $rowNumber: " . $e->getMessage());
+                }
+            }
+
+            DB::commit();
+            return redirect()->back()->with('flash_message', 'Data imported successfully');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('flash_message_warning', 'Error: ' . $e->getMessage());
         }
-        
-        fclose($handle);
-        return $importCount;
     }
 }
