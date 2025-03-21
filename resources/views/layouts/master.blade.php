@@ -170,6 +170,13 @@
                     <a href="{{ route('integrations.index')}}"
                        class="list-group-item childlist"> <i
                                 class="bullet-point"><span></span></i> {{ __('Integrations') }}</a>
+                    <!-- Ajout du nouveau lien Delete All Data -->
+                    <a href="{{ route('data.delete') }}" 
+                       onclick="return confirm('@lang('Are you sure you want to delete all data?')')"
+                       class="list-group-item childlist"> 
+                       <i class="bullet-point text-danger"><span></span></i> 
+                       <span class="text-danger">{{ __('Delete All Data') }}</span>
+                    </a>
                 </div>
             @endif
         </div>
