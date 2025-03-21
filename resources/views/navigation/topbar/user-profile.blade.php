@@ -17,7 +17,7 @@
                                 {{ auth()->user()->name }}
                             </div>
                             <div class="topbar-user__card__info">
-                                {{ auth()->user()->department->first()->name }}
+                                {{ auth()->user()->department->first() ? auth()->user()->department->first()->name : 'No Department' }}
                             </div>
                         </div>
                     </div>

@@ -180,6 +180,12 @@
                 </div>
             @endif
         </div>
+        @if(Entrust::hasRole('administrator') || Entrust::hasRole('owner'))
+        <a href="{{route('datagenerate')}}" class=" list-group-item"
+           data-parent="#MainMenu"><i
+            class="fa fa-database sidebar-icon"></i><span id="menu-txt">{{ __('Generate & Import Data') }}</span> 
+        </a>
+        @endif
     </nav>
 
 

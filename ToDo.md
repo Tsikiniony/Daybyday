@@ -13,11 +13,9 @@ _Create file .env
 _Copy .env.example to .env
 
 [x] Commande
-_Clear db : php artisan migrate:fresh --seed
-_Add admin (first) : php artisan db:seed 
-_Dummy data : php artisan db:seed --class=DummyDatabaseSeeder
-
-# Prise en main
+_Clear db : php artisan migrate:fresh
+_insert default data (admin,...): php artisan db:seed 
+_Insert data  : php artisan db:seed --class=DummyDatabaseSeeder
 
 ## Debug
 
@@ -28,7 +26,7 @@ _Delete Project from : http://127.0.0.1:8000/projects :
 
 [x] Error upload file
 _In config/filesystems :
-    -default : 's3' => default : 'public'
+    -default : 's3' => default : 'public' or 'local'
 
 [x] User duplicate entry
 _In UsersController : 
@@ -48,9 +46,19 @@ _Redirection error after absence detroy
     -return response("OK"); => Session::flash('flash_message', __('Absence      deleted'));
     return redirect()->back();
 
-## New functions
+## functions
+[] Delete all data
+    -create new controller datacontroller for the function
+    -create new route for the function
+    -create button clear data 
 [] Data import
-[] Reinit db
+    -install php extension
+[] Generate data
+    -create function generate data in datacontroller
+    -create new navigation generate data 
+    -create new page for data generate
+    -create button generate function 
+    -configure root(redirection controller, get function in datacontroller)
 
 
 

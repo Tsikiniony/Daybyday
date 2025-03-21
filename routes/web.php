@@ -20,6 +20,12 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('dashboard', 'PagesController@dashboard')->name('dashboard');
 
     /**
+     * Generate data
+     */
+    Route::get('/', 'DatagenerateController@datagenerate');
+    Route::get('datagenerate', 'DatagenerateController@datagenerate')->name('datagenerate');
+
+    /**
      * Users
      */
     Route::group(['prefix' => 'users'], function () {
@@ -218,6 +224,16 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     /**
+     * Generate data
+     */
+    Route::group(['prefix' => 'generatedata'], function () {
+        Route::get('/calendar', 'AppointmentsController@calendar')->name('appointments.calendar');
+        Route::get('/data', 'AppointmentsController@appointmentsJson')->name('appointments.data.json');
+        Route::post('/update/{appointment}', 'AppointmentsController@update')->name('appointments.update');
+        Route::post('/', 'AppointmentsController@store')->name('appointments.store');
+        Route::delete('/{appointment}', 'AppointmentsController@destroy')->name('appointments.destroy');
+    });
+    /**
      * Absence
      */
     Route::group(['prefix' => 'absences'], function () {
@@ -231,6 +247,8 @@ Route::group(['middleware' => ['auth']], function () {
 
 Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::get('/data/delete', 'DataController@deleteAll')->name('data.delete');
+    Route::get('/data/generate', 'DataController@generateTestData')->name('data.generate');
+    Route::post('/data/import', 'DataController@importCSV')->name('data.import');
 });
 Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
 Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');

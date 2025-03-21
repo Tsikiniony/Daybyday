@@ -81,3 +81,5 @@ php artisan serve
 php artisan db:seed --class=DummyDatabaseSeeder 
 ### clean all data
 php artisan migrate:fresh --seed
+### Edit admin
+php artisan db:seed --class=UsersTableSeeder

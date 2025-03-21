@@ -58,4 +58,8 @@ class PagesController extends Controller
             ->withSettings(Setting::first())
             ->withAbsencesToday($absences);
     }
+
+    public function datagenerate(){
+        return view('pages.datagenerate');
+    }
 }
