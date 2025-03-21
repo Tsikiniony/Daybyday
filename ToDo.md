@@ -17,8 +17,6 @@ _Clear db : php artisan migrate:fresh --seed
 _Add admin (first) : php artisan db:seed 
 _Dummy data : php artisan db:seed --class=DummyDatabaseSeeder
 
-# Prise en main
-
 ## Debug
 
 [x] Error 404 
@@ -28,7 +26,7 @@ _Delete Project from : http://127.0.0.1:8000/projects :
 
 [x] Error upload file
 _In config/filesystems :
-    -default : 's3' => default : 'public'
+    -default : 's3' => default : 'public' or 'local'
 
 [x] User duplicate entry
 _In UsersController : 
@@ -48,9 +46,14 @@ _Redirection error after absence detroy
     -return response("OK"); => Session::flash('flash_message', __('Absence      deleted'));
     return redirect()->back();
 
-## New functions
+## functions
+[] Delete all data
+    -create new controller for the function
+    -create new route for the function
+    -create button clear data 
 [] Data import
-[] Reinit db
+    
+[] Generate data
 
 
 
