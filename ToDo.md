@@ -13,9 +13,9 @@ _Create file .env
 _Copy .env.example to .env
 
 [x] Commande
-_Clear db : php artisan migrate:fresh --seed
-_Add admin (first) : php artisan db:seed 
-_Dummy data : php artisan db:seed --class=DummyDatabaseSeeder
+_Clear db : php artisan migrate:fresh
+_insert default data (admin,...): php artisan db:seed 
+_Insert data  : php artisan db:seed --class=DummyDatabaseSeeder
 
 ## Debug
 
@@ -48,12 +48,17 @@ _Redirection error after absence detroy
 
 ## functions
 [] Delete all data
-    -create new controller for the function
+    -create new controller datacontroller for the function
     -create new route for the function
     -create button clear data 
 [] Data import
-    
+    -install php extension
 [] Generate data
+    -create function generate data in datacontroller
+    -create new navigation generate data 
+    -create new page for data generate
+    -create button generate function 
+    -configure root(redirection controller, get function in datacontroller)
 
 
 
