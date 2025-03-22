@@ -53,6 +53,10 @@ _Redirection error after absence detroy
     -create button clear data 
 [] Data import
     -install php extension
+    -create function import file : csv, xlx, ...
+    -create new navigation import data
+    -create new page for data import
+    -create button import function
 [] Generate data
     -create function generate data in datacontroller
     -create new navigation generate data 
@@ -61,10 +65,37 @@ _Redirection error after absence detroy
     -configure root(redirection controller, get function in datacontroller)
 
 
+### Create API configuration
+[] Create API configuration
+    -import routes/api.php
 
+### Login with NewApp
+[] Login with NewApp
+    -create new page for login with NewApp
+    -edit app.php (provider)
+    -add middleware Sanctum in kernel.php
+    -create class Model PersonalAccessToken
+    -Modif AppServiceProvider
 
+[x] Configuration de base
+    - [x] Installation de Sanctum
+    - [x] Publication des configurations
+    - [x] Migration des tables
 
+[x] Modèles et Controllers
+    - [x] Création du modèle PersonalAccessToken
+    - [x] Modification du modèle User
+    - [x] Configuration du ApiController
 
+[x] Configuration
+    - [x] Configuration de Sanctum (sanctum.php)
+    - [x] Modification de AppServiceProvider
+    - [x] Configuration des routes API
+
+[x] Sécurité
+    - [x] Middleware Sanctum dans Kernel.php
+    - [x] Configuration CORS pour l'API
+    - [x] Gestion des tokens d'authentification
 
 
 

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\ApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,8 +14,18 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::group(['namespace' => 'App\Api\v1\Controllers'], function () {
-    Route::group(['middleware' => 'auth:api'], function () {
-        Route::get('users', ['uses' => 'UserController@index']);
-    });
+// Routes publiques
+Route::post('/login', [ApiController::class, 'login']);
+
+// Routes protégées
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/users', [ApiController::class, 'getAllUsers']);
+    Route::get('/users/{id}', [ApiController::class, 'getUserById']);
+    Route::get('/dashboard/stats', [ApiController::class, 'getDashboardStats']);
+    Route::get('/clients', [ApiController::class, 'getClients']);
+    Route::get('/invoices', [ApiController::class, 'getInvoices']);
+    Route::get('/leads', [ApiController::class, 'getLeads']);
+    Route::put('/leads/{id}/budget', [ApiController::class, 'updateLeadBudget']);
+    Route::delete('/leads/{id}', [ApiController::class, 'deleteLead']);
+    Route::put('/leads/{id}/alert', [ApiController::class, 'updateBudgetAlert']);
 });

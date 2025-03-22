@@ -2,22 +2,22 @@
     <div class="panel panel-primary contact-header-box">
         <div class="panel-body">
             @if(\Route::getCurrentRoute()->getName() != "users.show")
-            <a href="{{route('users.show', $contact->external_id)}}"><i class="ion ion-ios-redo " title="{{ __('Go to user') }}" style="
+            <a href="{{route('users.show', isset($contact) ? $contact->external_id : $user->external_id)}}"><i class="ion ion-ios-redo " title="{{ __('Go to user') }}" style="
                 float: right;
                 margin-right: 1em;
                 color:#61788b;
                 "></i></a>
             @endif
             <div class="col-sm-2">
-                <div class="profilepic"><img class="profilepicsize" src="{{ $contact->avatar }}"/></div>
+                <div class="profilepic"><img class="profilepicsize" src="{{ isset($contact) ? $contact->avatar : $user->avatar }}"/></div>
             </div>
             <div class="col-sm-8">
             <?php isset($changeUser) ?: $changeUser = false ?>
             @if($changeUser == false )
-                    <p class="name-text">{{ $contact->name }}</p>
+                    <p class="name-text">{{ isset($contact) ? $contact->name : $user->name }}</p>
             @else
 
-               <span id="assignee-user" class="siderbar-list-value name-text"> {{ $contact->name }}
+               <span id="assignee-user" class="siderbar-list-value name-text"> {{ isset($contact) ? $contact->name : $user->name }}
                    @if(Entrust::can('client-update'))
                        <i class="icon ion-md-create"></i>
                    @endif
@@ -33,7 +33,7 @@
                                     data-container="body"
                                     onchange="this.form.submit()">
                                 @foreach(\App\Models\User::all()->pluck('nameAndDepartment', 'external_id') as $key => $user)
-                                    <option {{$contact->external_id == $key ? 'selected' : ''}} data-tokens="{{$user}}" value="{{$key}}">{{$user}}</option>
+                                    <option {{(isset($contact) ? $contact->external_id : $user->external_id) == $key ? 'selected' : ''}} data-tokens="{{$user}}" value="{{$key}}">{{$user}}</option>
                                 @endforeach
                             </select>
                         </form>
@@ -41,26 +41,26 @@
                 @endif
             @endif
                 <p class="department-text">
-                    {{$contact->department()->first()->name}}
+                    {{isset($contact) ? $contact->department()->first()->name : $user->department()->first()->name}}
                 </p>
                 <!--MAIL-->
-                @if($contact->email)
+                @if(isset($contact) ? $contact->email : $user->email)
                     <p class="contact-paragraph">
-                        <a href="mailto:{{ $contact->email }}">{{ $contact->email }}</a>
+                        <a href="mailto:{{isset($contact) ? $contact->email : $user->email}}">{{isset($contact) ? $contact->email : $user->email}}</a>
                     </p>
                     <!--Work Phone-->
                 @endif
-                @if($contact->primary_number)
+                @if(isset($contact) ? $contact->primary_number : $user->primary_number)
                     <p class="contact-paragraph">
-                        <a href="tel:{{ $contact->primary_number }}">{{ $contact->primary_number }}</a>
+                        <a href="tel:{{isset($contact) ? $contact->primary_number : $user->primary_number}}">{{isset($contact) ? $contact->primary_number : $user->primary_number}}</a>
 
                         @endif
-                        @if($contact->secondary_number && $contact->primary_number)
+                        @if((isset($contact) ? $contact->secondary_number : $user->secondary_number) && (isset($contact) ? $contact->primary_number : $user->primary_number))
                             /
                     @endif
-                    @if($contact->secondary_number)
+                    @if(isset($contact) ? $contact->secondary_number : $user->secondary_number)
                         <!--Personal Phone-->
-                            <a href="tel:{{ $contact->secondary_number }}">{{ $contact->secondary_number }}</a>
+                            <a href="tel:{{isset($contact) ? $contact->secondary_number : $user->secondary_number}}">{{isset($contact) ? $contact->secondary_number : $user->secondary_number}}</a>
                     </p>
                 @endif
             </div>
