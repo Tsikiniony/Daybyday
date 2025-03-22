@@ -48,10 +48,9 @@ class Kernel extends HttpKernel
         'filesystem.is.enabled' => [ \App\Http\Middleware\RedirectIfFileSystemIsNotEnabled::class],
         'is.demo' => [ \App\Http\Middleware\RedirectIfDemo::class],
         'api' => [
-            'auth:api',
-            'throttle:60,1',
-            'bindings',
-
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            'throttle:api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
     ];
