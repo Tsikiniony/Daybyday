@@ -14,7 +14,7 @@
             <!--Client info leftside-->
             <div class="contactleft">
                 <p class="client-name-text"  aria-hidden="true" data-toggle="tooltip"
-                   title="{{ __('Contact person name') }}" data-placement="left"> {{$contact_info->name}}</p>
+                   title="{{ __('Contact person name') }}" data-placement="left">{{$contact_info->name}}</p>
             @if($contact_info->email != "")
                 <!--MAIL-->
                     <p class="contact-paragraph">
