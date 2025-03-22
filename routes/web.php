@@ -103,8 +103,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('leads', 'LeadsController');
     Route::post('/comments/{type}/{external_id}', 'CommentController@store')->name('comments.create');
 
-
-
     /**
      * Products
      */
@@ -248,7 +246,8 @@ Route::group(['middleware' => ['auth']], function () {
 Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::get('/data/delete', 'DataController@deleteAll')->name('data.delete');
     Route::get('/data/generate', 'DataController@generateTestData')->name('data.generate');
-    Route::post('/data/import', 'DataController@importCSV')->name('data.import');
+    Route::get('/data', 'DataController@index')->name('data.index');
+    Route::post('/data/import', 'DataController@importFile')->name('data.import');
 });
 Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
 Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');

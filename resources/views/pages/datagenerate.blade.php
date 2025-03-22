@@ -9,10 +9,9 @@
     <div class="col-md-6">
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-database"></i> {{ __('Generate Demo Data') }}</h3>
+                <h3 class="panel-title"><i class="fa fa-magic"></i> {{ __('Generate Data') }}</h3>
             </div>
             <div class="panel-body">
-                <p class="text-muted">{{ __('Generate sample data for testing.') }}</p>
                 <a href="{{route('data.generate')}}"
                    onclick="return confirm('@lang('Are you sure you want to generate data?')')"
                    class="btn btn-primary btn-lg btn-block">
@@ -29,41 +28,47 @@
                 <h3 class="panel-title"><i class="fa fa-upload"></i> {{ __('Import Data') }}</h3>
             </div>
             <div class="panel-body">
-                <form action="{{ route('data.import') }}" method="POST" enctype="multipart/form-data" class="dropzone" id="importForm">
+                @if(session('flash_message'))
+                    <div class="alert alert-success">
+                        {{ session('flash_message') }}
+                    </div>
+                @endif
+                @if(session('flash_message_warning'))
+                    <div class="alert alert-warning">
+                        {{ session('flash_message_warning') }}
+                    </div>
+                @endif
+
+                <form action="{{ route('data.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
-                        <label for="table_name">{{ __('Select Table') }}</label>
-                        <select name="table_name" id="table_name" class="form-control" required>
-                            <option value="">{{ __('Choose a table...') }}</option>
+                        <label for="table">{{ __('Sélectionner une table') }}</label>
+                        <select name="table" id="table" class="form-control" required>
+                            <option value="">{{ __('Choisir une table...') }}</option>
                             <option value="users">Users</option>
                             <option value="clients">Clients</option>
-                            <option value="projects">Projects</option>
-                            <option value="tasks">Tasks</option>
-                            <option value="departments">Departments</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label for="csv_file">{{ __('Select File') }}</label>
-                        <div class="input-group">
-                            <span class="input-group-btn">
-                                <span class="btn btn-primary btn-file">
-                                    {{ __('Browse') }} <input type="file" name="csv_file" id="csv_file" accept=".csv,.xls,.xlsx">
-                                </span>
-                            </span>
-                            <input type="text" class="form-control" readonly>
-                        </div>
+                        <label for="file">{{ __('Sélectionner un fichier (CSV)') }}</label>
+                        <input type="file" class="form-control" name="file" accept=".csv,.xlsx,.xls" required>
                         <p class="help-block">
                             <i class="fa fa-info-circle"></i> 
-                            {{ __('Accepted formats: CSV, XLS, XLSX files. Make sure columns match the selected table structure.') }}
+                            {{ __('Formats acceptés: CSV, Excel (.csv, .xlsx, .xls). Assurez-vous que les colonnes correspondent à la structure de la table.') }}
                         </p>
                     </div>
 
                     <div class="form-group">
-                        <button type="submit" class="btn btn-success btn-lg btn-block">
-                            <i class="fa fa-upload"></i> {{ __('Import Data') }}
-                        </button>
+                        <label>
+                            <input type="checkbox" name="has_headers" checked> 
+                            {{ __('Le fichier contient une ligne d\'en-têtes') }}
+                        </label>
                     </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-upload"></i> {{ __('Importer') }}
+                    </button>
                 </form>
             </div>
         </div>
@@ -71,44 +76,49 @@
 </div>
 
 @push('scripts')
-<script>
-$(document).ready(function() {
-    $(document).on('change', '.btn-file :file', function() {
-        var input = $(this),
-        numFiles = input.get(0).files ? input.get(0).files.length : 1,
-        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-        input.trigger('fileselect', [numFiles, label]);
-    });
-
-    $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
-        var input = $(this).parents('.input-group').find(':text'),
-        log = numFiles > 1 ? numFiles + ' files selected' : label;
-        
-        if(input.length) {
-            input.val(log);
-        }
-    });
-});
-</script>
-@endpush
-
-@push('style')
 <style>
-.btn-file {
+input[type="file"] {
     position: relative;
-    overflow: hidden;
 }
-.btn-file input[type=file] {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 100%;
-    min-height: 100%;
-    font-size: 100px;
-    text-align: right;
-    filter: alpha(opacity=0);
-    opacity: 0;
+
+input[type="file"]::-webkit-file-upload-button {
+    width: 0;
+    padding: 0;
+    margin: 0;
+    -webkit-appearance: none;
+    border: none;
+}
+
+input[type="file"]::before {
+    content: 'Select file';
+    display: inline-block;
+    background: #5bc0de;
+    border: 1px solid #46b8da;
+    border-radius: 3px;
+    padding: 5px 8px;
     outline: none;
+    white-space: nowrap;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 10pt;
+    color: white;
+    margin-right: 10px;
+}
+
+input[type="file"]:hover::before {
+    background: #31b0d5;
+    border-color: #269abc;
+}
+
+input[type="file"]:active::before {
+    background: #269abc;
+}
+
+input[type="file"]::after {
+    content: attr(data-file);
+}
+
+.custom-file-label {
     background: white;
     cursor: inherit;
     display: block;
@@ -116,5 +126,3 @@ $(document).ready(function() {
 </style>
 @endpush
 @stop
-
-
