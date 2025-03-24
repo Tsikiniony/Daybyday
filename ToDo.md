@@ -53,6 +53,7 @@ _Redirection error after absence detroy
     -create button clear data 
 [] Data import
     -install php extension
+    -create new migration for table authorizations
     -create function import file : csv, xlx, ...
     -create new navigation import data
     -create new page for data import

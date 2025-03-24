@@ -244,10 +244,10 @@ Route::group(['middleware' => ['auth']], function () {
 });
 
 Route::group(['middleware' => ['auth', 'admin']], function () {
-    Route::get('/data/delete', 'DataController@deleteAll')->name('data.delete');
-    Route::get('/data/generate', 'DataController@generateTestData')->name('data.generate');
     Route::get('/data', 'DataController@index')->name('data.index');
     Route::post('/data/import', 'DataController@importFile')->name('data.import');
+    Route::get('/data/delete', 'DataController@deleteAll')->name('data.delete');
+    Route::get('/data/generate', 'DataController@generateTestData')->name('data.generate');
 });
 Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
 Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');
