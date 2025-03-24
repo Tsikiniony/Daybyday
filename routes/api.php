@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiController;
 
 /*
@@ -16,16 +17,26 @@ use App\Http\Controllers\ApiController;
 
 // Routes publiques
 Route::post('/login', [ApiController::class, 'login']);
+Route::get('/clients', [ApiController::class, 'getAllClients']);
+Route::get('/projects', [ApiController::class, 'getAllProjects']);
+Route::get('/tasks', [ApiController::class, 'getAllTasks']);
+Route::get('/offers', [ApiController::class, 'getAllOffers']);
+Route::get('/invoices', [ApiController::class, 'getAllInvoices']);
+Route::get('/payments', [ApiController::class, 'getAllPayments']);
+
+// Gestion des CORS pour les requêtes OPTIONS
+Route::options('/{any}', function () {
+    return response('', 200)
+        ->header('Access-Control-Allow-Origin', 'http://localhost:8080')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+})->where('any', '.*');
+
+// Routes pour les paiements
+Route::get('/payments/{external_id}', [ApiController::class, 'getPayment']);
+Route::put('/payments/{external_id}', [ApiController::class, 'updatePayment']);
+Route::delete('/payments/{external_id}', [ApiController::class, 'deletePayment']);
 
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/users', [ApiController::class, 'getAllUsers']);
-    Route::get('/users/{id}', [ApiController::class, 'getUserById']);
-    Route::get('/dashboard/stats', [ApiController::class, 'getDashboardStats']);
-    Route::get('/clients', [ApiController::class, 'getClients']);
-    Route::get('/invoices', [ApiController::class, 'getInvoices']);
-    Route::get('/leads', [ApiController::class, 'getLeads']);
-    Route::put('/leads/{id}/budget', [ApiController::class, 'updateLeadBudget']);
-    Route::delete('/leads/{id}', [ApiController::class, 'deleteLead']);
-    Route::put('/leads/{id}/alert', [ApiController::class, 'updateBudgetAlert']);
 });

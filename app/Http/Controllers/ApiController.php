@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Client;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\Offer;
 use App\Models\Invoice;
-use App\Models\Lead;
-use Carbon\Carbon;
+use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 
 class ApiController extends Controller
 {
@@ -32,82 +35,137 @@ class ApiController extends Controller
         ], 401);
     }
 
-    public function getDashboardStats()
-    {
-        $stats = [
-            'overview' => [
-                'total_clients' => Client::count(),
-                'total_invoices' => Invoice::count(),
-                'total_leads' => Lead::count(),
-                'total_amount' => Invoice::sum('total_amount')
-            ],
-            'invoices_status' => [
-                'paid' => [
-                    'count' => Invoice::where('status', 'paid')->count(),
-                    'amount' => Invoice::where('status', 'paid')->sum('total_amount')
-                ],
-                'unpaid' => [
-                    'count' => Invoice::where('status', 'unpaid')->count(),
-                    'amount' => Invoice::where('status', 'unpaid')->sum('total_amount')
-                ]
-            ],
-            'leads_status' => [
-                'new' => Lead::where('status', 'new')->count(),
-                'converted' => Lead::where('status', 'converted')->count(),
-                'lost' => Lead::where('status', 'lost')->count(),
-                'total_budget' => Lead::sum('budget'),
-                'conversion_rate' => [
-                    'percentage' => Lead::where('status', 'converted')->count() / Lead::count() * 100,
-                    'total_converted' => Lead::where('status', 'converted')->count(),
-                    'total_leads' => Lead::count()
-                ]
-            ]
-        ];
-
-        return response()->json($stats);
-    }
-
-    public function getClients()
-    {
-        $clients = Client::with(['invoices', 'leads'])->get();
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllClients(){
+        $clients = Client::all();
         return response()->json($clients);
     }
 
-    public function getInvoices()
-    {
-        $invoices = Invoice::with(['client'])->get();
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllProjects(){
+        $projects = Project::with('client')->get();
+        return response()->json($projects);
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllTasks(){
+        $tasks = Task::with('project','client')->get();
+        return response()->json($tasks);
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllOffers(){
+        $offers = Offer::with('client')->get();
+        return response()->json($offers);
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllInvoices(){
+        $invoices = Invoice::all();
         return response()->json($invoices);
     }
 
-    public function getLeads()
-    {
-        $leads = Lead::with(['client'])->get();
-        return response()->json($leads);
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllPayments(){
+        $payments = Payment::all();
+        return response()->json($payments);
     }
 
-    public function updateLeadBudget(Request $request, $id)
+    public function updatePayment(Request $request, $external_id)
     {
-        $lead = Lead::findOrFail($id);
-        $lead->budget = $request->budget;
-        $lead->save();
-
-        return response()->json($lead);
+        $payment = Payment::where('external_id', $external_id)->firstOrFail();
+        $payment->amount = $request->amount;
+        $payment->save();
+        return $this->addCorsHeaders(response()->json($payment));
     }
 
-    public function deleteLead($id)
+    public function deletePayment($external_id)
     {
-        $lead = Lead::findOrFail($id);
-        $lead->delete();
+        try {
+            \Log::info('Tentative de suppression du paiement avec external_id: ' . $external_id);
+            
+            $payment = Payment::where('external_id', $external_id)->first();
+            
+            if (!$payment) {
+                \Log::error('Paiement non trouvé avec external_id: ' . $external_id);
+                return $this->addCorsHeaders(response()->json([
+                    'message' => 'Paiement non trouvé',
+                    'external_id' => $external_id
+                ], 404));
+            }
 
-        return response()->json(['message' => 'Lead deleted successfully']);
+            \Log::info('Paiement trouvé, ID: ' . $payment->id);
+            
+            // Suppression du paiement
+            $deleted = $payment->delete();
+            
+            if (!$deleted) {
+                \Log::error('Échec de la suppression du paiement');
+                return $this->addCorsHeaders(response()->json([
+                    'message' => 'Échec de la suppression du paiement'
+                ], 500));
+            }
+
+            \Log::info('Paiement supprimé avec succès');
+            
+            return $this->addCorsHeaders(response()->json([
+                'message' => 'Paiement supprimé avec succès',
+                'payment_id' => $payment->id,
+                'external_id' => $external_id
+            ]));
+        } catch (\Exception $e) {
+            \Log::error('Exception lors de la suppression: ' . $e->getMessage());
+            return $this->addCorsHeaders(response()->json([
+                'message' => 'Erreur lors de la suppression du paiement',
+                'error' => $e->getMessage()
+            ], 500));
+        }
     }
 
-    public function updateBudgetAlert(Request $request, $id)
+    public function getPayment($external_id)
     {
-        $lead = Lead::findOrFail($id);
-        $lead->budget_alert = $request->budget_alert;
-        $lead->save();
+        $payment = Payment::where('external_id', $external_id)->firstOrFail();
+        return $this->addCorsHeaders(response()->json($payment));
+    }
 
-        return response()->json($lead);
+    private function addCorsHeaders($response)
+    {
+        return $response
+            ->header('Access-Control-Allow-Origin', 'http://localhost:8080')
+            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    }
+
+    public function optionsPayment($external_id)
+    {
+        return $this->addCorsHeaders(response()->json(['message' => 'OPTIONS']));
+    }
+
+    public function optionsUpdatePayment($external_id)
+    {
+        return $this->addCorsHeaders(response()->json(['message' => 'OPTIONS']));
+    }
+
+    public function optionsDeletePayment($external_id)
+    {
+        return $this->addCorsHeaders(response()->json(['message' => 'OPTIONS']));
     }
 }

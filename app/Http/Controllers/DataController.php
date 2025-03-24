@@ -42,24 +42,9 @@ class DataController extends Controller
 
     public function index()
     {
-        $importableTables = [
-            'clients' => 'Clients',
-            'projects' => 'Projects',
-            'tasks' => 'Tasks',
-            'leads' => 'Leads',
-            'users' => 'Users',
-            'departments' => 'Departments',
-            'industries' => 'Industries',
-            'products' => 'Products',
-            'invoices' => 'Invoices',
-            'appointments' => 'Appointments',
-            'orders' => 'Orders',
-            'payments' => 'Payments',
-            'shipments' => 'Shipments',
-            'reviews' => 'Reviews'
-        ];
-        return view('pages.datagenerate', compact('importableTables'));
+        return view('pages.datagenerate', ['importableTables' => $this->importableTables]);
     }
+
 
     public function importFile(Request $request)
     {

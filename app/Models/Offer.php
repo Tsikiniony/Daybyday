@@ -46,4 +46,8 @@ class Offer extends Model
         $this->status = OfferStatus::lost()->getStatus();
         $this->save();
     }
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
 }
