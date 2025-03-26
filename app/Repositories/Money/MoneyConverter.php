@@ -25,6 +25,17 @@ class MoneyConverter
             return $this->symbolAfterFormat();
         }
     }
+    public static function formatStatic($amount, $useCode = true)
+    {
+        if ($amount instanceof Money) {
+            $money = $amount;
+        } else {
+            $money = new Money($amount);
+        }
+        
+        $converter = new self($money);
+        return $converter->format($useCode);
+    }
     public function codeFormat()
     {
         return $this->currencyFormat() . ' ' . $this->money->getCurrency()->getCode();

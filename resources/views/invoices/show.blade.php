@@ -170,10 +170,46 @@
                                         <button type="button" id="update-payment" class="btn btn-md btn-brand btn-full-width closebtn"
                                                 <?php $titleText =  !$invoice->isSent() ? __("Can't pay an invoice with status draft. Send invoice first or force a new status") : "" ?> title="{{$titleText}}"
                                                 {{ !$invoice->isSent() ? 'disabled ' : "" }}
+                                                {{ $invoice->status == 'paid' ? 'disabled ' : "" }}
                                                 data-toggle="modal" data-target="#update-payment-modal">@lang('Register payment')</button>
                             @endif
                         </div>
                         <div class="col-md-6">
+                            <!-- Section Remise -->
+                            @if($activeDiscountRate && !$invoice->invoiceDiscount && !$invoice->isSent())
+                            <div class="form-group mt-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <label class="mb-0 mr-3">{{ __('Apply discount') }} ({{ $activeDiscountRate['rate'] }}%)</label>
+                                        <div class="custom-control custom-switch d-inline">
+                                            <input type="checkbox" class="custom-control-input" id="applyDiscount" name="apply_discount">
+                                            <label class="custom-control-label" for="applyDiscount"></label>
+                                        </div>
+                                    </div>
+                                    <div id="discountInfo" style="display: none;">
+                                        <span class="text-muted">{{ __('Original amount') }}: <span id="originalAmount">{{ $finalPrice }}</span></span>
+                                        <br>
+                                        <span class="text-success">{{ __('Discounted amount') }}: <span id="discountedAmount">0.00</span></span>
+                                        <br>
+                                        <small class="text-muted">{{ $activeDiscountRate['description'] }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($invoice->invoiceDiscount)
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-percentage mr-2"></i>
+                                {{ __('Discount applied') }}: {{ $invoice->invoiceDiscount->discountRate->rate }}%
+                                <br>
+                                <small>
+                                    {{ __('Original amount') }}: {{ App\Repositories\Money\MoneyConverter::formatStatic($invoice->invoiceDiscount->original_amount) }}
+                                    <br>
+                                    {{ __('Discounted amount') }}: {{ App\Repositories\Money\MoneyConverter::formatStatic($invoice->invoiceDiscount->discounted_amount) }}
+                                </small>
+                            </div>
+                            @endif
+
                             @if(Entrust::can('invoice-send'))
                                 <button type="button" id="sendInvoice" class="btn btn-md btn-brand btn-full-width closebtn" value="add_time_modal"
                                         <?php $titleText =  $invoice->isSent() ? __('Invoice already sent') : "" ?> title="{{$titleText}}"
@@ -215,6 +251,21 @@
                     'method' => 'post',
                     'route' => ['invoice.sent', $invoice->external_id],
                     ]) !!}
+                    @if($activeDiscountRate && !$invoice->invoiceDiscount)
+                    <div class="form-group">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <label class="form-label">{{ __('Apply discount') }} ({{ $activeDiscountRate['rate'] }}%)</label>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="applyDiscount" name="apply_discount" value="1">
+                                    <label class="form-check-label" for="applyDiscount">{{ __('Apply discount to this invoice') }}</label>
+                                </div>
+                                <small class="text-muted d-block">{{ $activeDiscountRate['description'] }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     @if($apiconnected)
                     <p>{{ __('We have found this contact from your billing integration, do you wish for us to create the invoice in your your billing system as well?, than please choose a contact below') }}</p>
                     <select name="invoiceContact"
@@ -299,6 +350,39 @@
                     $('#send-mail').hide(150);
             });
 
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const discountCheckbox = document.getElementById('applyDiscount');
+            if (discountCheckbox) {
+                discountCheckbox.addEventListener('change', function() {
+                    const rawAmount = '{{ $finalPrice }}';
+                    const amountStr = rawAmount
+                        .replace(/[^\d,]/g, '')
+                        .replace(/\./g, '')
+                        .replace(',', '.');
+                    
+                    const amountDue = parseFloat(amountStr);
+                    const discountRate = parseFloat('{{ $activeDiscountRate["rate"] ?? 0 }}');
+                    const discountInfo = document.getElementById('discountInfo');
+                    const discountedAmountElement = document.getElementById('discountedAmount');
+                    
+                    if (this.checked) {
+                        const discountedAmount = amountDue - (amountDue * (discountRate / 100));
+                        discountInfo.style.display = 'block';
+                        
+                        const formattedAmount = new Intl.NumberFormat('{{ app()->getLocale() }}', {
+                            style: 'currency',
+                            currency: '{{ $currency }}'
+                        }).format(discountedAmount);
+                        
+                        discountedAmountElement.textContent = formattedAmount;
+                    } else {
+                        discountInfo.style.display = 'none';
+                    }
+                });
+            }
         });
     </script>
 @endpush

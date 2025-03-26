@@ -10,7 +10,10 @@ use App\Models\Task;
 use App\Models\Offer;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use App\Services\Invoice\GenerateInvoiceStatus;
+use App\Services\Invoice\InvoiceCalculator;
 
 class ApiController extends Controller
 {
@@ -72,11 +75,13 @@ class ApiController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Get all invoices
+     *
      * @return \Illuminate\Http\Response
      */
-    public function getAllInvoices(){
-        $invoices = Invoice::all();
+    public function getAllInvoices()
+    {
+        $invoices = Invoice::with('client')->get();
         return response()->json($invoices);
     }
 
@@ -94,6 +99,10 @@ class ApiController extends Controller
         $payment = Payment::where('external_id', $external_id)->firstOrFail();
         $payment->amount = $request->amount;
         $payment->save();
+        $invoice = Invoice::find($payment->invoice_id);
+        if ($invoice) {
+            app(GenerateInvoiceStatus::class, ['invoice' => $invoice])->createStatus();
+        }
         return $this->addCorsHeaders(response()->json($payment));
     }
 
@@ -146,6 +155,18 @@ class ApiController extends Controller
         return $this->addCorsHeaders(response()->json($payment));
     }
 
+    public function getClient($external_id)
+    {
+        $client = Client::with('user')->where('external_id', $external_id)->firstOrFail();
+        return $this->addCorsHeaders(response()->json($client));
+    }
+
+    public function getProject($external_id)
+    {
+        $project = Project::with('user')->where('external_id', $external_id)->firstOrFail();
+        return $this->addCorsHeaders(response()->json($project));
+    }
+
     private function addCorsHeaders($response)
     {
         return $response
@@ -167,5 +188,17 @@ class ApiController extends Controller
     public function optionsDeletePayment($external_id)
     {
         return $this->addCorsHeaders(response()->json(['message' => 'OPTIONS']));
+    }
+
+    public function getAllUsers()
+    {
+        $users = User::all();
+        return $this->addCorsHeaders(response()->json($users));
+    }
+
+    public function getUser($external_id)
+    {
+        $user = User::where('external_id', $external_id)->firstOrFail();
+        return $this->addCorsHeaders(response()->json($user));
     }
 }

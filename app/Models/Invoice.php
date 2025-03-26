@@ -99,6 +99,11 @@ class Invoice extends Model
         ]);
     }
 
+    public function invoiceDiscount()
+    {
+        return $this->hasOne(InvoiceDiscount::class);
+    }
+
     /**
      * @param $contactId
      * @param bool $sendMail

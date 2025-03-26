@@ -9,6 +9,7 @@
 | to using a Closure or controller method. Build something great!
 |
 */
+
 Route::auth();
 Route::get('/logout', 'Auth\LoginController@logout');
 Route::group(['middleware' => ['auth']], function () {
@@ -245,9 +246,11 @@ Route::group(['middleware' => ['auth']], function () {
 
 Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::get('/data', 'DataController@index')->name('data.index');
-    Route::post('/data/import', 'DataController@importFile')->name('data.import');
+    Route::post('/data/import', 'DataController@import')->name('data.import');
     Route::get('/data/delete', 'DataController@deleteAll')->name('data.delete');
     Route::get('/data/generate', 'DataController@generateTestData')->name('data.generate');
 });
 Route::get('/dropbox-token', 'CallbackController@dropbox')->name('dropbox.callback');
 Route::get('/googledrive-token', 'CallbackController@googleDrive')->name('googleDrive.callback');
+use App\Http\Controllers\DatabaseController;
+Route::post('/importBase', [DatabaseController::class, 'import'])->name('database.import');
