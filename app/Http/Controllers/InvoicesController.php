@@ -16,6 +16,8 @@ use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\Integration;
 use App\Models\InvoiceLine;
+use App\Models\DiscountRate;
+use App\Models\InvoiceDiscount;
 use App\Enums\InvoiceStatus;
 use App\Enums\OfferStatus;
 use App\Enums\PaymentSource;
@@ -81,6 +83,16 @@ class InvoicesController extends Controller
         $subPrice = $invoiceCalculator->getSubTotal();
         $vatPrice = $invoiceCalculator->getVatTotal();
         $amountDue = $invoiceCalculator->getAmountDue();
+
+        // Récupérer le taux de remise actif et formater les données nécessaires
+        $discountRate = DiscountRate::where('is_active', true)->first();
+        $discountRateData = null;
+        if ($discountRate) {
+            $discountRateData = [
+                'rate' => $discountRate->rate,
+                'description' => $discountRate->description
+            ];
+        }
         
         return view('invoices.show')
             ->withInvoice($invoice)
@@ -94,7 +106,9 @@ class InvoicesController extends Controller
             ->withPaymentSources(PaymentSource::values())
             ->withAmountDue($amountDue)
             ->withSource($invoice->source)
-            ->withCompanyName(Setting::first()->company);
+            ->withCompanyName(Setting::first()->company)
+            ->withCurrency(Setting::first()->currency)
+            ->withActiveDiscountRate($discountRateData); // Pass the formatted data
     }
 
 
@@ -110,11 +124,30 @@ class InvoicesController extends Controller
             session()->flash('flash_message_warning', __('You do not have permission to send an invoice'));
             return redirect()->route('invoices.show', $external_id);
         }
+
         /** @var Invoice $invoice */
         $invoice = $this->findByExternalId($external_id);
         if ($invoice->isSent()) {
             session()->flash('flash_message_warning', __('Invoice already sent'));
             return redirect()->route('invoices.show', $external_id);
+        }
+
+        // Apply discount if requested
+        if (($request->has('apply_discount') && $request->apply_discount == "1")) {
+            $discountRate = DiscountRate::where('is_active', true)->first();
+            if ($discountRate !== null) {
+                $calculator = new InvoiceCalculator($invoice);
+                $originalAmount = $calculator->getTotalPrice()->getAmount();
+                $discountedAmount = $originalAmount - ($originalAmount * ($discountRate->rate / 100));
+                
+                // Create invoice discount record
+                InvoiceDiscount::create([
+                    'invoice_id' => $invoice->id,
+                    'discount_rate_id' => $discountRate->id,
+                    'original_amount' => $originalAmount,
+                    'discounted_amount' => $discountedAmount
+                ]);
+            }
         }
 
         $result = $invoice->invoice($request->invoiceContact);
@@ -123,9 +156,9 @@ class InvoicesController extends Controller
             $invoice->sendMail($request->subject, $request->message, $request->recipientMail, $attachPdf);
         }
 
-        $invoice->sent_at =  Carbon::now();
-        $invoice->status  =  InvoiceStatus::unpaid()->getStatus();
-        $invoice->due_at  =  $result["due_at"];
+        $invoice->sent_at = Carbon::now();
+        $invoice->status = InvoiceStatus::unpaid()->getStatus();
+        $invoice->due_at = $result["due_at"];
         $invoice->invoice_number = app(InvoiceNumberService::class)->setInvoiceNumber($result["invoice_number"]);
         $invoice->save();
 

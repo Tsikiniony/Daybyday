@@ -109,6 +109,11 @@ class Project extends model implements Commentable
         return route('comments.create', ['type' => 'project', 'external_id' => $this->external_id]);
     }
 
+    public static function whereExternalId($external_id)
+    {
+        return self::where('external_id', $external_id)->first();
+    }
+
     /**
      * @return array
      */

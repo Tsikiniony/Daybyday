@@ -8,6 +8,8 @@ git add .
 git commit -m "Project commit" 
 git push origin main
 
+### Update git
+git pull origin main --rebase
 ### Create branch
 git checkout -b name
 

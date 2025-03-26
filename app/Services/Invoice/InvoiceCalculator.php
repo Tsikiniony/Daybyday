@@ -5,6 +5,7 @@ use App\Models\Offer;
 use App\Models\Invoice;
 use App\Repositories\Tax\Tax;
 use App\Repositories\Money\Money;
+use App\Models\InvoiceDiscount;
 
 class InvoiceCalculator
 {
@@ -58,7 +59,30 @@ class InvoiceCalculator
 
     public function getAmountDue()
     {
-        return new Money($this->getTotalPrice()->getAmount() - $this->invoice->payments()->sum('amount'));
+        $baseAmount = $this->getTotalPrice()->getAmount();
+        // Check if there's a discount applied
+        $discount = InvoiceDiscount::where('invoice_id', $this->invoice->id)->first();
+        if ($discount !== null) {
+            $baseAmount = $discount->discounted_amount;
+        }
+
+        // Subtract any payments
+        $paidAmount = $this->invoice->payments()->sum('amount');
+        return new Money($baseAmount - $paidAmount);
+    }
+
+    public function getAmountDueInt()
+    {
+        $baseAmount = $this->getTotalPrice()->getAmount();
+        // Check if there's a discount applied
+        $discount = InvoiceDiscount::where('invoice_id', $this->invoice->id)->first();
+        if ($discount !== null) {
+            $baseAmount = $discount->discounted_amount;
+        }
+
+        // Subtract any payments
+        $paidAmount = $this->invoice->payments()->sum('amount');
+        return $baseAmount - $paidAmount;
     }
 
     public function getInvoice()

@@ -22,57 +22,67 @@
     </div>
 
     <!-- Import Data Section -->
-    <div class="col-md-6">
+    <div class="col-md-12">
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <h3 class="panel-title"><i class="fa fa-upload"></i> {{ __('Import Data') }}</h3>
             </div>
             <div class="panel-body">
-                @if(session('flash_message'))
-                    <div class="alert alert-success">
-                        {{ session('flash_message') }}
-                    </div>
-                @endif
-                @if(session('flash_message_warning'))
-                    <div class="alert alert-warning">
-                        {{ session('flash_message_warning') }}
-                    </div>
-                @endif
+            <div class="col-sm-10">
+        <form action="{{ route('database.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="form-group">
+                {!! Form::label('csv_file1', __('Import Projects CSV'). ':', ['class' => 'control-label thin-weight']) !!}
+                <input type="file" name="csv_file1" class="form-control" required accept=".csv">
+                <small class="form-text text-muted">Please upload the projects CSV file</small>
+            </div>
+            
+            <div class="form-group">
+                {!! Form::label('csv_file2', __('Import Tasks CSV'). ':', ['class' => 'control-label thin-weight']) !!}
+                <input type="file" name="csv_file2" class="form-control" required accept=".csv">
+                <small class="form-text text-muted">Please upload the tasks CSV file</small>
+            </div>
+            
+            <div class="form-group">
+                {!! Form::label('csv_file3', __('Import Leads and invoices CSV'). ':', ['class' => 'control-label thin-weight']) !!}
+                <input type="file" name="csv_file3" class="form-control" required accept=".csv">
+                <small class="form-text text-muted">Please upload the leads and invoices CSV file</small>
+            </div>
 
-                <form action="{{ route('data.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group">
-                        <label for="table">{{ __('Sélectionner une table') }}</label>
-                        <select name="table" id="table" class="form-control" required>
-                            <option value="">{{ __('Choisir une table...') }}</option>
-                            <option value="users">Users</option>
-                            <option value="clients">Clients</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="file">{{ __('Sélectionner un fichier (CSV)') }}</label>
-                        <input type="file" class="form-control" name="file" accept=".csv,.xlsx,.xls" required>
-                        <p class="help-block">
-                            <i class="fa fa-info-circle"></i> 
-                            {{ __('Formats acceptés: CSV, Excel (.csv, .xlsx, .xls). Assurez-vous que les colonnes correspondent à la structure de la table.') }}
-                        </p>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" name="has_headers" checked> 
-                            {{ __('Le fichier contient une ligne d\'en-têtes') }}
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-upload"></i> {{ __('Importer') }}
-                    </button>
-                </form>
+            <button type="submit" class="btn btn-md btn-success">
+                <i class="fas fa-upload mr-2"></i> {{ __('Import All Files') }}
+            </button>
+        </form>
+    </div>
             </div>
         </div>
     </div>
+</div>
+
+@push('scripts')
+<script>
+    function addFileInput() {
+        const container = document.getElementById('file-inputs');
+        
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `
+            <div class="col-sm-12">
+                <div class="input-group">
+                    <input type="file" name="files[]" class="form-control" accept=".csv">
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-danger" onclick="this.closest('.form-group').remove()">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(div);
+    }
+</script>
+@endpush
 </div>
 
 @push('scripts')
